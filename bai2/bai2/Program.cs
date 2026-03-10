@@ -23,7 +23,7 @@ namespace bai2
     }
     internal class Program
     {
-        static List<Item> LocItemTheoGia(List<Item> inventory, double price) 
+        static List<Item> GetItemsByPrice(List<Item> inventory, double price) 
         { 
             return inventory.Where(item => item.price > price).ToList(); 
         }
@@ -31,7 +31,7 @@ namespace bai2
         {
             return inventory.Where(item => item.type == type).ToList();
         }
-        static List<Item> SapXepTheoGia(List<Item> inventory, string type) 
+        static List<Item> SortItemByPrice(List<Item> inventory, string type) 
         { 
             if (type == "des") 
             { 
@@ -80,13 +80,13 @@ namespace bai2
             {
                 Console.WriteLine($"{item.id} - {item.name} - {item.type} - {item.price}");
             }
-            inventory1 = LocItemTheoGia(inventory, 100);
+            inventory1 = GetItemsByPrice(inventory, 100);
             Console.WriteLine("\nDanh sach item co gia > 100 trong inventory:");
             foreach (var item in inventory1)
             {
                 Console.WriteLine($"{item.id} - {item.name} - {item.type} - {item.price}");
             }
-            inventory1 = SapXepTheoGia(inventory, "asc");
+            inventory1 = SortItemByPrice(inventory, "asc");
             Console.WriteLine("\nDanh sach item sap xep theo gia tang dan trong inventory:");
             foreach (var item in inventory1)
             {

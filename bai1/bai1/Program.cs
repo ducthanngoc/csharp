@@ -26,11 +26,11 @@ namespace bai1
     }
     internal class Program
     {
-        static List<Student> LocSinhVienTheoDiem(List<Student> dssv, double score)
+        static List<Student> GetStudentByScore(List<Student> dssv, double score)
         {
             return dssv.Where(sv => sv.score >= score).ToList();
         }
-        static List<Student> SapXepTheoDiem(List<Student> dssv, string type)
+        static List<Student> SortStudentByScore(List<Student> dssv, string type)
         {
             if (type == "des")
             {
@@ -41,13 +41,13 @@ namespace bai1
                 return dssv.OrderBy(sv => sv.score).ToList();
             }
         }
-        static List<Student> TimSinhVienDiemCaoNhat(List<Student> dssv)
+        static List<Student> GetHighestScoreStudent(List<Student> dssv)
         {
             double maxScore = dssv.Max(sv => sv.score);
 
             return dssv.Where(sv => sv.score == maxScore).ToList();
         }
-        static double TinhDiemTrungBinh(List<Student> dssv)
+        static double GetAverageScore(List<Student> dssv)
         {
             return dssv.Average(sv => sv.score);
         }
@@ -82,24 +82,24 @@ namespace bai1
                 Console.WriteLine($"{sv.id} - {sv.name} - {sv.age} - {sv.score}");
             }
             Console.WriteLine("\nDanh sach sinh vien co diem >=7:");
-            List<Student> ds1 = LocSinhVienTheoDiem(dssv, 7);
+            List<Student> ds1 = GetStudentByScore(dssv, 7);
             foreach (Student sv in ds1)
             {
                 Console.WriteLine($"{sv.id} - {sv.name} - {sv.age} - {sv.score}");
             }
             Console.WriteLine("\nDanh sach sinh vien sap xep theo diem giam dan:");
-            List<Student> ds2 = SapXepTheoDiem(dssv, "des");
+            List<Student> ds2 = SortStudentByScore(dssv, "des");
             foreach (Student sv in ds2)
             {
                 Console.WriteLine($"{sv.id} - {sv.name} - {sv.age} - {sv.score}");
             }
-            ds2 = TimSinhVienDiemCaoNhat(dssv);
+            ds2 = GetHighestScoreStudent(dssv);
             Console.WriteLine("\nDanh sach sinh vien co diem cao nhat:");
             foreach (Student sv in ds2)
             {
                 Console.WriteLine($"{sv.id} - {sv.name} - {sv.age} - {sv.score}");
             }
-            double diemtb = TinhDiemTrungBinh(dssv);
+            double diemtb = GetAverageScore(dssv);
             Console.WriteLine($"Diem trung binh cua tat ca sinh vien: {diemtb}");
         }
     }
