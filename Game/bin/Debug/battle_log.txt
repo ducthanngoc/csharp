@@ -1,0 +1,118 @@
+===== BATTLE START =====
+Turn 1
+
+[ATTACK]Thor-PC1 slashes Merlin-PC2! Current SP is 90!
+
+[DAMAGE]Merlin-PC2 received 20 damage! Current HP is 130!
+
+[SKILL] Merlin-PC2 spent 60 MP using FireBall on Thor-PC1! Current MP is 140!
+
+[DAMAGE]Thor-PC1 received 90 damage! Current HP is 210!
+
+Turn 2
+
+[DEFEND]Thor-PC1 defended! Current SP is 80!
+
+[HEAL]Merlin-PC2 used healing! Current MP is 140!
+
+Merlin-PC2 is healed 30 HP! Merlin-PC2's current HP is 150!
+
+Turn 3
+
+[DEFEND]Thor-PC1 defended! Current SP is 80!
+
+[HEAL]Merlin-PC2 used healing! Current MP is 140!
+
+Merlin-PC2 is healed 30 HP! Merlin-PC2's current HP is 150!
+
+Turn 4
+
+[SKILL] Thor-PC1 spent 20 SP using PowerSlash on Merlin-PC2! Current SP is 80!
+
+[DAMAGE]Merlin-PC2 received 30 damage! Current HP is 120!
+
+[ATTACK]Merlin-PC2 casts ManaBall at Thor-PC1! Current MP is 150!
+
+[DAMAGE]Thor-PC1 received 54 damage! Current HP is 156!
+
+Turn 5
+
+[DEFEND]Thor-PC1 defended! Current SP is 80!
+
+[HEAL]Merlin-PC2 used healing! Current MP is 150!
+
+Merlin-PC2 is healed 30 HP! Merlin-PC2's current HP is 150!
+
+Turn 6
+
+[DEFEND]Thor-PC1 defended! Current SP is 80!
+
+[HEAL]Merlin-PC2 used healing! Current MP is 150!
+
+Merlin-PC2 is healed 30 HP! Merlin-PC2's current HP is 150!
+
+Turn 7
+
+[SKILL] Thor-PC1 spent 20 SP using PowerSlash on Merlin-PC2! Current SP is 80!
+
+[DAMAGE]Merlin-PC2 received 30 damage! Current HP is 120!
+
+[HEAL]Merlin-PC2 used healing! Current MP is 150!
+
+Merlin-PC2 is healed 30 HP! Merlin-PC2's current HP is 150!
+
+Turn 8
+
+[DEFEND]Thor-PC1 defended! Current SP is 80!
+
+[ATTACK]Merlin-PC2 casts ManaBall at Thor-PC1! Current MP is 160!
+
+[DAMAGE]Thor-PC1 received 27 damage! Current HP is 129!
+
+Turn 9
+
+[DEFEND]Thor-PC1 defended! Current SP is 80!
+
+[ATTACK]Merlin-PC2 casts ManaBall at Thor-PC1! Current MP is 170!
+
+[DAMAGE]Thor-PC1 received 27 damage! Current HP is 102!
+
+Turn 10
+
+[SKILL] Thor-PC1 spent 20 SP using PowerSlash on Merlin-PC2! Current SP is 80!
+
+[DAMAGE]Merlin-PC2 received 30 damage! Current HP is 120!
+
+[ATTACK]Merlin-PC2 casts ManaBall at Thor-PC1! Current MP is 180!
+
+[DAMAGE]Thor-PC1 received 54 damage! Current HP is 48!
+
+Turn 11
+
+[ATTACK]Thor-PC1 slashes Merlin-PC2! Current SP is 90!
+
+[DAMAGE]Merlin-PC2 received 20 damage! Current HP is 100!
+
+[HEAL]Merlin-PC2 used healing! Current MP is 170!
+
+Merlin-PC2 is healed 30 HP! Merlin-PC2's current HP is 130!
+
+Turn 12
+
+[DEFEND]Thor-PC1 defended! Current SP is 80!
+
+[ATTACK]Merlin-PC2 casts ManaBall at Thor-PC1! Current MP is 180!
+
+[DAMAGE]Thor-PC1 received 27 damage! Current HP is 21!
+
+Turn 13
+
+[DEFEND]Thor-PC1 defended! Current SP is 80!
+
+[ATTACK]Merlin-PC2 casts ManaBall at Thor-PC1! Current MP is 180!
+
+[DAMAGE]Thor-PC1 received 27 damage! Current HP is 0!
+
+[DEATH] Thor-PC1 has died!
+[LEVEL UP] Merlin-PC2 is now level 2
+===== BATTLE END =====
