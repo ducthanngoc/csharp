@@ -1,63 +1,117 @@
-﻿using Game.Interfaces;
+﻿using Game.Core;
+using Game.Events;
+using Game.Interfaces;
 using Game.Math;
 using Game.Models;
 using System;
 using System.Collections.Generic;
-using Game.Events;
+
 namespace Game.Battle
 {
     public class BattleSystem
     {
-        Random rand = new Random();
-        public static event Action<int> OnTurnStart;
+        private readonly EventBus _eventBus;
+        private Random rand = new Random();
 
-        public static event Action OnTurnEnd;
-        public class BattleAction
+        private Character _c1;
+        private Character _c2;
+
+        private bool _isActive;
+        private int _turn;
+
+        private bool _ai1;
+        private bool _ai2;
+
+        public BattleLogger Logger { get; }
+        public BattleSystem(EventBus eventBus)
         {
-            public string Name { get; set; }
+            _eventBus = eventBus;
+            Logger = new BattleLogger();
+        }
 
-            public Action Execute { get; set; }
+        public void StartBattle(Character c1, Character c2, bool ai1, bool ai2)
+        {
+            _c1 = c1;
+            _c2 = c2;
 
-            public BattleAction(string name, Action execute)
+            _ai1 = ai1;
+            _ai2 = ai2;
+
+            _turn = 1;
+            _isActive = true;
+
+            _c1.RestoreFull();
+            _c2.RestoreFull();
+            Logger.StartLog();
+
+            Console.Clear();
+            Console.WriteLine("===== BATTLE START =====");
+            Console.WriteLine($"{_c1.Name} vs {_c2.Name}");
+        }
+
+        public void Update()
+        {
+            if (!_isActive) return;
+
+            Console.WriteLine($"\n--- TURN {_turn} ---");
+            Logger.OnTurnStart(_turn);
+
+            ExecuteTurn(_c1, _c2, _ai1);
+            if (CheckEnd()) return;
+
+            ExecuteTurn(_c2, _c1, _ai2);
+            if (CheckEnd()) return;
+
+            EndTurnCycle();
+            _turn++;
+
+            //if (_ai1 && _ai2)
+            //    System.Threading.Thread.Sleep(500);
+        }
+
+        private void ExecuteTurn(Character actor, Character target, bool isAI)
+        {
+            var actions = GetAvailableActions(actor, target);
+
+            if (isAI)
             {
-                Name = name;
-                Execute = execute;
+                actions[rand.Next(actions.Count)].Execute();
+            }
+            else
+            {
+                Console.WriteLine($"\n{actor.Name} turn:");
+
+                for (int i = 0; i < actions.Count; i++)
+                {
+                    Console.WriteLine($"{i + 1}. {actions[i].Name}");
+                }
+
+                int choice = GetChoice(actions.Count);
+                actions[choice - 1].Execute();
             }
         }
+
         public List<BattleAction> GetAvailableActions(Character actor, Character target)
         {
-            List<BattleAction> actions = new List<BattleAction>();
+            var actions = new List<BattleAction>();
 
-            actions.Add(new BattleAction(
-                "Attack",
-                () => actor.Attack(target)
-            ));
+            actions.Add(new BattleAction("ATTACK", () => actor.Attack(target)));
 
-            if (actor is IDefend defender)
-            {
-                actions.Add(new BattleAction(
-                    "Defend",
-                    () => defender.Defend()
-                ));
-            }
-            if (actor is IHealable healer)
-            {
-                actions.Add(new BattleAction(
-                    "Heal",
-                    () => healer.Heal(actor,30)
-                ));
-            }
+            if (actor is IDefend d)
+                actions.Add(new BattleAction("DEFEND", () => d.Defend()));
 
-            if (actor is ISkillUser skillUser)
+            if (actor is IHealable h)
+                actions.Add(new BattleAction("HEAL", () => h.Heal(actor, 40)));
+
+            if (actor is ISkillUser sku)
             {
-                foreach (var skill in skillUser.Skills)
+                foreach (var skill in sku.Skills)
                 {
-                    if (skill.CurrentCooldown <= 0 &&
-                        actor.CurrentEP >= skill.Cost)
+                    if (skill.CurrentCooldown <= 0 && actor.CurrentEP >= skill.Cost)
                     {
                         actions.Add(new BattleAction(
-                            skill.SkillName,
-                            () => skillUser.UseSkill(target, skill)
+                            $"SKILL: {skill.SkillName}",
+                            () => sku.UseSkill(target, skill)
                         ));
                     }
                 }
@@ -65,93 +119,69 @@ namespace Game.Battle
 
             return actions;
         }
-        void ExecuteTurn(Character actor, Character target, bool isAI)
+
+        private bool CheckEnd()
         {
-            if (actor is IDefend defender && defender.IsDefend) defender.IsDefend = false;
-            var actions = GetAvailableActions(actor, target);
-            Console.WriteLine($"\n{actor.Name} Turn");
-            int choice;
-
-            if (isAI)
+            if (_c1.IsDead() || _c2.IsDead())
             {
-                choice = rand.Next(actions.Count);
+                EndBattle();
+                return true;
             }
-            else
-            {
-                for (int i = 0; i < actions.Count; i++)
-                {
-                    Console.WriteLine($"{i + 1}. {actions[i].Name}");
-                }
-                Console.Write("Choose action:\n");
-                while (true)
-                {
-                    ConsoleKeyInfo key = Console.ReadKey(true);
-
-                    int number = key.KeyChar - '0';
-
-                    if (number >= 1 && number <= actions.Count)
-                    {
-                        choice = number - 1;
-                        break;
-                    }
-                }
-            }
-
-            actions[choice].Execute();
+            return false;
         }
-        void EndTurn(Character c1, Character c2)
-        {
-            c1.RegenerateEnergy();
-            c2.RegenerateEnergy();
-            foreach (ISkill skills in c1.Skills)
-            {
-                skills.CurrentCooldown = GameMath.Clamp(skills.CurrentCooldown - 1, 0, skills.Cooldown);
-            }
-            foreach (ISkill skills in c2.Skills)
-            {
-                skills.CurrentCooldown = GameMath.Clamp(skills.CurrentCooldown - 1, 0, skills.Cooldown);
-            }
-            OnTurnEnd?.Invoke();
-        }
-        public void StartBattle(Character c1, Character c2,bool AI1, bool AI2)
-        {
-            BattleLogger.StartLog();
-            int turn = 1;
-            c1.CurrentHP = c1.HP;
-            c2.CurrentHP = c2.HP;
-            c1.CurrentEP = c1.EP;
-            c2.CurrentEP = c2.EP;
-            if (c1 is IDefend d1) d1.IsDefend = false;
-            if (c2 is IDefend d2) d2.IsDefend = false;
-            while (c1.CurrentHP > 0 && c2.CurrentHP > 0)
-            {
-                Console.WriteLine($"Turn{turn}");
-                OnTurnStart?.Invoke(turn);
-                
-                ExecuteTurn(c1, c2, AI1);
 
-                if (c2.CurrentHP <= 0)
-                    break;
-
-                ExecuteTurn(c2, c1, AI2);
-                EndTurn(c1, c2);
-                turn++; 
-            }
+        private void EndBattle()
+        {
+            _isActive = false;
 
             Console.WriteLine("\n===== RESULT =====");
+            var winner = _c1.CurrentHP > 0 ? _c1 : _c2;
+            Console.WriteLine($"{winner.Name} WIN!");
 
-            if (c1.CurrentHP > 0)
-            {
-                Console.WriteLine($"{c1.Name} Wins");
-                if (c1.Level <= c2.Level) c1.LevelUp();
-            }
-            else
-            {
-                if (c2.Level <= c1.Level) c2.LevelUp();
-                Console.WriteLine($"{c2.Name} Wins");
-            }
+            Logger.EndLog();
 
-            BattleLogger.EndLog();
+            _eventBus.Publish(new EndBattleEvent());
+        }
+
+        private void EndTurnCycle()
+        {
+            _c1.RegenerateEnergy();
+            _c2.RegenerateEnergy();
+
+            if (_c1 is ISkillUser s1)
+                foreach (var s in s1.Skills)
+                    s.CurrentCooldown = GameMath.Clamp(s.CurrentCooldown - 1, 0, s.Cooldown);
+
+            if (_c2 is ISkillUser s2)
+                foreach (var s in s2.Skills)
+                    s.CurrentCooldown = GameMath.Clamp(s.CurrentCooldown - 1, 0, s.Cooldown);
+        }
+
+        private int GetChoice(int max)
+        {
+            while (true)
+            {
+                var key = Console.ReadKey(true);
+
+                if (char.IsDigit(key.KeyChar))
+                {
+                    int val = key.KeyChar - '0';
+                    if (val >= 1 && val <= max)
+                        return val;
+                }
+            }
+        }
+
+        public class BattleAction
+        {
+            public string Name;
+            public Action Execute;
+
+            public BattleAction(string name, Action execute)
+            {
+                Name = name;
+                Execute = execute;
+            }
         }
     }
 }

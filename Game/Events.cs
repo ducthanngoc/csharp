@@ -1,102 +1,117 @@
-﻿using Game.Battle;
-using Game.Interfaces;
+﻿using Game.Interfaces;
 using Game.Models;
+using System;
 using System.IO;
 using System.Text;
+
 namespace Game.Events
 {
-    public static class BattleLogger
+    public class StartBattleEvent
     {
-        private static StringBuilder logBuilder = new StringBuilder();
+        public Character Player { get; }
+        public Character Enemy { get; }
 
-        public static void Subscribe()
+        public bool AI1 { get; }
+        public bool AI2 { get; }
+
+        public StartBattleEvent(Character p, Character e, bool ai1, bool ai2)
         {
-            Character.OnAttack += OnAttack;
-            Character.OnDamageTaken += OnDamageTaken;
-            Character.OnDeath += OnDeath;
-            Character.OnLevelUp += OnLevelUp;
-            Character.OnSkillUsed += OnSkillUsed;
-            BattleSystem.OnTurnStart += OnTurnStart;
-            Warrior.OnDefend += OnDefend;
-            Mage.OnHeal += OnHeal;
+            Player = p;
+            Enemy = e;
+            AI1 = ai1;
+            AI2 = ai2;
         }
-        public static void StartLog()
+    }
+
+    public class EndBattleEvent { }
+
+    public class GameOverEvent { }
+    public class BattleLogger
+    {
+        private StringBuilder logBuilder = new StringBuilder();
+
+        public void Subscribe(Character c)
+        {
+            if (c == null) return;
+
+            c.OnAttack += OnAttack;
+            c.OnDamageTaken += OnDamageTaken;
+            c.OnDeath += OnDeath;
+            c.OnLevelUp += OnLevelUp;
+            if (c is ISkillUser iskilluser) iskilluser.OnSkillUsed += OnSkillUsed;
+            if (c is Warrior w) w.OnDefend += OnDefend;
+            if (c is Mage m) m.OnHeal += OnHeal;
+        }
+
+        public void StartLog()
         {
             logBuilder.Clear();
-            logBuilder.AppendLine("===== BATTLE START =====");
+            logBuilder.AppendLine("========== BATTLE START ==========");
         }
-        public static void EndLog()
-        {
-            logBuilder.AppendLine("===== BATTLE END =====");
 
-            File.AppendAllText("battle_log.txt", logBuilder.ToString());
-        }
-        public static void OnTurnStart(int turn)
+        public void OnTurnStart(int turn)
         {
-            logBuilder.AppendLine($"Turn {turn}\n");
+            logBuilder.AppendLine($"\n[TURN {turn}]");
         }
-        private static void OnAttack(Character attacker, Character target)
+        private void OnAttack(Character attacker, Character target)
         {
-            string type,ep;
+            string msg = $"[ATTACK] {attacker.Name} {attacker.AttackType} {target.Name}. (Current {attacker.EnergyType}: {attacker.CurrentEP})";
+            logBuilder.AppendLine(msg);
+            Console.WriteLine(msg);
+        }
 
-            if (attacker is Mage)
+        private void OnDamageTaken(Character defender, Character attacker, double damage)
+        {
+            string msg = $"[DAMAGE] {defender.Name} received {damage} damage. Current HP: {defender.CurrentHP}";
+            logBuilder.AppendLine(msg);
+            Console.WriteLine(msg);
+        }
+
+        private void OnSkillUsed(Character caster, Character target, ISkill skill)
+        {
+            string msg = $"[SKILL] {caster.Name} used {skill.SkillName} on {target.Name}! Spent {skill.Cost} {caster.EnergyType}! Current {caster.EnergyType}:{caster.CurrentEP}";
+            logBuilder.AppendLine(msg);
+            Console.WriteLine(msg);
+        }
+
+        private void OnDefend(Character defender)
+        {
+            string msg = $"[DEFEND] {defender.Name} used defend!";
+            logBuilder.AppendLine(msg);
+            Console.WriteLine(msg);
+        }
+
+        private void OnHeal(Character healer, Character target, double amount)
+        {
+            string msg = $"[HEAL] {healer.Name} used healing \n {target.Name} was healed {amount} HP!" ;
+            logBuilder.AppendLine(msg);
+            Console.WriteLine(msg);
+        }
+
+        private void OnDeath(Character c)
+        {
+            string msg = "[DEATH] " + c.Name + " has died!";
+            logBuilder.AppendLine(msg);
+            Console.WriteLine(msg);
+        }
+
+        private void OnLevelUp(Character c)
+        {
+            logBuilder.AppendLine("[LEVEL UP] " + c.Name + " đã lên cấp " + c.Level + "!");
+        }
+
+        public void EndLog()
+        {
+            logBuilder.AppendLine("\n========== END ==========");
+            try
             {
-                type = "casts ManaBall at";
-                ep = "MP";
+                File.AppendAllText("battle_log.txt", logBuilder.ToString());
+                Console.WriteLine("\nBattle's history was saved in 'battle_log.txt'");
             }
-            else if (attacker is Warrior)
+            catch (Exception ex)
             {
-                type = "slashes";
-                ep = "SP";
+                Console.WriteLine("Error file log saving: " + ex.Message);
             }
-            else if (attacker is Archer)
-            {
-                type = "shoots an arrow at";
-                ep = "SP";
-            }
-            else
-            {
-                type = "attacks";
-                ep = "SP";
-            }
-            logBuilder.AppendLine($"[ATTACK]{attacker.Name} {type} {target.Name}! Current {ep} is {attacker.CurrentEP}!\n");
-        }
-        private static void OnDefend(Character defender)
-        {
-            logBuilder.AppendLine($"[DEFEND]{defender.Name} defended! Current SP is {defender.CurrentEP}!\n");
-        }
-        private static void OnHeal(Character healer, Character target, double amount)
-        {
-            logBuilder.AppendLine($"[HEAL]{healer.Name} used healing! Current MP is {healer.CurrentEP}!\n");
-            logBuilder.AppendLine($"{target.Name} is healed {amount} HP! {target.Name}'s current HP is {target.CurrentHP}!\n");
-        }
-        private static void OnDamageTaken(Character target, double damage)
-        {
-            logBuilder.AppendLine($"[DAMAGE]{target.Name} received {damage} damage! Current HP is {target.CurrentHP}!\n");
-        }
-
-        private static void OnDeath(Character c)
-        {
-            logBuilder.AppendLine($"[DEATH] {c.Name} has died!");
-        }
-
-        private static void OnLevelUp(Character c)
-        {
-            logBuilder.AppendLine($"[LEVEL UP] {c.Name} is now level {c.Level}");
-        }
-
-        private static void OnSkillUsed(Character caster, Character target, ISkill skill)
-        {
-            string ep;
-            if (caster is Mage)
-                ep = "MP";
-            else if (caster is Warrior)
-                ep = "SP";
-            else if (caster is Archer)
-                ep = "SP";
-            else
-                ep = "SP";
-            logBuilder.AppendLine($"[SKILL] {caster.Name} spent {skill.Cost} {ep} using {skill.SkillName} on {target.Name}! Current {ep} is {caster.CurrentEP}!\n");
         }
     }
 }
