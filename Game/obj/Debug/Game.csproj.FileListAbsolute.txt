@@ -1,7 +1,0 @@
-C:\Users\ADMIN\source\repos\Game\obj\Debug\Game.csproj.AssemblyReference.cache
-C:\Users\ADMIN\source\repos\Game\obj\Debug\Game.csproj.CoreCompileInputs.cache
-C:\Users\ADMIN\source\repos\Game\bin\Debug\Game.exe.config
-C:\Users\ADMIN\source\repos\Game\bin\Debug\Game.exe
-C:\Users\ADMIN\source\repos\Game\bin\Debug\Game.pdb
-C:\Users\ADMIN\source\repos\Game\obj\Debug\Game.exe
-C:\Users\ADMIN\source\repos\Game\obj\Debug\Game.pdb
