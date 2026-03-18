@@ -5,7 +5,6 @@ class Program
     static void Main()
     {
         Console.Title = "Turn-Based Game Demo";
-
         try
         {
             GameManager.Instance.Init();

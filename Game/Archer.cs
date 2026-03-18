@@ -3,14 +3,13 @@ using Game.Math;
 using Game.Skills;
 using System;
 using System.Collections.Generic;
-
 namespace Game.Models
 {
     public class Archer : Character, IShooter, ISkillUser
     {
         public event Action<Character, Character> OnCrit;
         public event Action<Character, Character, ISkill> OnSkillUsed;
-        public Random rand { get; set; } = new Random();
+        public Random Crit { get; } = new Random();
         public List<ISkill> Skills { get; set; } = new List<ISkill>();
 
         public Archer(string name) : base(name)
@@ -24,6 +23,8 @@ namespace Game.Models
             Class = "Archer";
             AttackType = "shoots";
             EnergyType = "SP";
+            CritRate = 0.2f;
+            EvasionRate = 0.15f;
             Skills.Add(new FireArrow());
         }
 
@@ -35,13 +36,9 @@ namespace Game.Models
         public override void Attack(Character target)
         {
             double damage = PhysicDamage;
-            if (rand.NextDouble() < 0.2)
-            {
-                OnCrit?.Invoke(this, target);
-                damage *= 2;
-            }
             CurrentEP = GameMath.Clamp(CurrentEP - 10, 0, EP);
             RaiseOnAttack(target);
+            damage = IsCrit(target, damage);
             target.TakeDamage(this, damage);
         }
         public void UseSkill(Character target, ISkill skill)
@@ -52,10 +49,19 @@ namespace Game.Models
                 CurrentEP -= skill.Cost;
                 skill.CurrentCooldown = skill.Cooldown;
                 OnSkillUsed?.Invoke(this, target, skill);
+                damage = IsCrit(target, damage);
                 target.TakeDamage(this, damage);
             }
         }
-
+        public double IsCrit(Character target, double damage)
+        {
+            if (Crit.NextDouble() < CritRate)
+            {
+                OnCrit?.Invoke(this, target);
+                damage *= 2;
+            }
+            return damage;
+        }
         public override void LevelUp()
         {
             Level++;

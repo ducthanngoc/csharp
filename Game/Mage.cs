@@ -3,7 +3,6 @@ using Game.Math;
 using Game.Skills;
 using System;
 using System.Collections.Generic;
-
 namespace Game.Models
 {
     public class Mage : Character, IHealable, ISkillUser
@@ -22,9 +21,9 @@ namespace Game.Models
             Class = "Mage";
             AttackType = "casts ManaBall at";
             EnergyType = "MP";
+            EvasionRate = 0.05f;
             Skills.Add(new FireBall());
         }
-
         public override void ShowInfo()
         {
             Console.WriteLine($"{Name} | Class: {Class} | HP: {CurrentHP}/{HP} | PhysicDamage: {PhysicDamage} | MagicDamage: {MagicDamage} | {EnergyType}: {CurrentEP}/{EP} | LV: {Level}");
@@ -37,7 +36,6 @@ namespace Game.Models
             RaiseOnAttack(target);
             target.TakeDamage(this, damage);
         }
-
         public void UseSkill(Character target, ISkill skill)
         {
             if (skill.CurrentCooldown <= 0 && CurrentEP >= skill.Cost)

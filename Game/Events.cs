@@ -3,7 +3,6 @@ using Game.Models;
 using System;
 using System.IO;
 using System.Text;
-
 namespace Game.Events
 {
     public class StartBattleEvent
@@ -22,13 +21,12 @@ namespace Game.Events
             AI2 = ai2;
         }
     }
-
     public class EndBattleEvent { }
 
     public class GameOverEvent { }
     public class BattleLogger
     {
-        private StringBuilder logBuilder = new StringBuilder();
+        private readonly StringBuilder logBuilder = new StringBuilder();
 
         public void Subscribe(Character c)
         {
@@ -38,11 +36,16 @@ namespace Game.Events
             c.OnDamageTaken += OnDamageTaken;
             c.OnDeath += OnDeath;
             c.OnLevelUp += OnLevelUp;
+            c.OnEvade += OnEvade;
             if (c is ISkillUser iskilluser) iskilluser.OnSkillUsed += OnSkillUsed;
             if (c is Warrior w) w.OnDefend += OnDefend;
             if (c is Mage m) m.OnHeal += OnHeal;
+            if (c is Archer a) a.OnCrit += OnCrit;
         }
-
+        public void AppendLog(string message)
+        {
+            logBuilder.AppendLine(message);
+        }
         public void StartLog()
         {
             logBuilder.Clear();
@@ -80,7 +83,18 @@ namespace Game.Events
             logBuilder.AppendLine(msg);
             Console.WriteLine(msg);
         }
-
+        private void OnCrit(Character shooter, Character targer)
+        {
+            string msg = $"[CRIT] {shooter.Name} crit hit {targer.Name}!";
+            logBuilder.AppendLine(msg);
+            Console.WriteLine(msg);
+        }
+        private void OnEvade(Character c)
+        {
+            string msg = $"[Evade] {c.Name} evaded the attack!";
+            logBuilder.AppendLine(msg);
+            Console.WriteLine(msg);
+        }
         private void OnHeal(Character healer, Character target, double amount)
         {
             string msg = $"[HEAL] {healer.Name} used healing \n {target.Name} was healed {amount} HP!" ;

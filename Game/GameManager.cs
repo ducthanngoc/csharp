@@ -3,8 +3,6 @@ using Game.Events;
 using Game.Models;
 using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
-
 namespace Game.Core
 {
     public enum GameState
@@ -19,7 +17,6 @@ namespace Game.Core
     {
         private static readonly Lazy<GameManager> _instance =
             new Lazy<GameManager>(() => new GameManager());
-
         public static GameManager Instance => _instance.Value;
 
         private GameManager()
@@ -31,8 +28,8 @@ namespace Game.Core
         public EventBus EventBus { get; private set; }
         public BattleSystem BattleSystem { get; private set; }
 
-        private List<Character> templates = new List<Character>();
-        private Random rand = new Random();
+        private readonly List<Character> templates = new List<Character>();
+        private readonly Random rand = new Random();
 
         public GameState CurrentState { get; private set; }
         private bool _isRunning;
@@ -238,15 +235,7 @@ namespace Game.Core
         }
         private Character CreateCharacterInstance(int index, string name)
         {
-            Character newChar;
-
-            switch (index)
-            {
-                case 0: newChar = new Warrior(name); break;
-                case 1: newChar = new Archer(name); break;
-                case 2: newChar = new Mage(name); break;
-                default: newChar = new Warrior(name); break;
-            }
+            Character newChar = new CharacterFactory().CreateCharacter(index,name);
             BattleSystem.Logger.Subscribe(newChar);
 
             return newChar;

@@ -1,5 +1,4 @@
-﻿using Game.Core;
-using Game.Models;
+﻿using Game.Models;
 using System;
 using System.Collections.Generic;
 namespace Game.Interfaces
@@ -18,7 +17,8 @@ namespace Game.Interfaces
     public interface IShooter
     {
         event Action<Character, Character> OnCrit;
-        Random rand { get; set; }    }
+        Random Crit { get;}    
+    }
     public interface ISkill
     {
         string SkillName { get; }

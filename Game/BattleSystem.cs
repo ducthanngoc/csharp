@@ -11,7 +11,7 @@ namespace Game.Battle
     public class BattleSystem
     {
         private readonly EventBus _eventBus;
-        private Random rand = new Random();
+        private readonly Random rand = new Random();
 
         private Character _c1;
         private Character _c2;
@@ -28,7 +28,6 @@ namespace Game.Battle
             _eventBus = eventBus;
             Logger = new BattleLogger();
         }
-
         public void StartBattle(Character c1, Character c2, bool ai1, bool ai2)
         {
             _c1 = c1;
@@ -52,19 +51,16 @@ namespace Game.Battle
         public void Update()
         {
             if (!_isActive) return;
-
             Console.WriteLine($"\n--- TURN {_turn} ---");
             Logger.OnTurnStart(_turn);
-
             ExecuteTurn(_c1, _c2, _ai1);
             if (CheckEnd()) return;
-
             ExecuteTurn(_c2, _c1, _ai2);
             if (CheckEnd()) return;
-
             EndTurnCycle();
             _turn++;
-
+            _c1.ShowInfo();
+            _c2.ShowInfo();
             //if (_ai1 && _ai2)
             //    System.Threading.Thread.Sleep(500);
         }
@@ -93,9 +89,10 @@ namespace Game.Battle
 
         public List<BattleAction> GetAvailableActions(Character actor, Character target)
         {
-            var actions = new List<BattleAction>();
-
-            actions.Add(new BattleAction("ATTACK", () => actor.Attack(target)));
+            var actions = new List<BattleAction>
+            {
+                new BattleAction("ATTACK", () => actor.Attack(target))
+            };
 
             if (actor is IDefend d)
                 actions.Add(new BattleAction("DEFEND", () => d.Defend()));
@@ -107,16 +104,17 @@ namespace Game.Battle
             {
                 foreach (var skill in sku.Skills)
                 {
-                    if (skill.CurrentCooldown <= 0 && actor.CurrentEP >= skill.Cost)
+                    var s = skill;
+
+                    if (s.CurrentCooldown <= 0 && actor.CurrentEP >= s.Cost)
                     {
                         actions.Add(new BattleAction(
-                            $"SKILL: {skill.SkillName}",
-                            () => sku.UseSkill(target, skill)
+                            $"SKILL: {s.SkillName}",
+                            () => sku.UseSkill(target, s)
                         ));
                     }
                 }
             }
-
             return actions;
         }
 
@@ -171,7 +169,6 @@ namespace Game.Battle
                 }
             }
         }
-
         public class BattleAction
         {
             public string Name;

@@ -10,7 +10,6 @@ namespace Game.Core
         public void Subscribe<T>(Action<T> handler)
         {
             var type = typeof(T);
-
             if (!_subscribers.ContainsKey(type))
                 _subscribers[type] = new HashSet<Delegate>();
 

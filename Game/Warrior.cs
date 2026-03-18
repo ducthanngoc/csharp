@@ -3,7 +3,6 @@ using Game.Math;
 using Game.Skills;
 using System;
 using System.Collections.Generic;
-
 namespace Game.Models
 {
     public class Warrior : Character, IDefend, ISkillUser
@@ -26,9 +25,9 @@ namespace Game.Models
             EnergyType = "SP";
             EP = 100;
             CurrentEP = 100;
+            EvasionRate = 0.1f;
             Skills.Add(new PowerSlash());
         }
-
         public override void ShowInfo()
         {
             Console.WriteLine($"{Name} | Class: {Class} | HP: {CurrentHP}/{HP} | PhysicDamage: {PhysicDamage} | MagicDamage: {MagicDamage} | {EnergyType}: {CurrentEP}/{EP} | LV: {Level}");
@@ -59,7 +58,6 @@ namespace Game.Models
             IsDefend = true;
             OnDefend?.Invoke(this);
         }
-
         public override void TakeDamage(Character attacker, double damage)
         {
             if (IsDefend)

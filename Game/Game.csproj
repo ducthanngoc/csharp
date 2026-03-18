@@ -46,13 +46,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Archer.cs" />
+    <Compile Include="CharacterFactory.cs" />
+    <Compile Include="CharacterStats.cs" />
     <Compile Include="EventBus.cs" />
     <Compile Include="Events.cs" />
     <Compile Include="BattleSystem.cs" />
     <Compile Include="Characters.cs" />
     <Compile Include="GameManager.cs" />
     <Compile Include="GameMath.cs" />
-    <Compile Include="IBaseStat.cs" />
     <Compile Include="Interfaces.cs" />
     <Compile Include="Mage.cs" />
     <Compile Include="Program.cs" />

@@ -13,32 +13,19 @@ namespace Game.Models
         }
     }
 
-    public abstract class Character
+    public abstract class Character:CharacterStats
     {
-        public long ID { get; protected set; }
-        public string Name { get; set; }
-        public double HP { get; protected set; }
-        public double CurrentHP { get; set; }
-        public double EP { get; set; }
-        public double CurrentEP { get; set; }
-        public double PhysicDamage { get; set; }
-        public double MagicDamage { get; set; }
-        public int Level { get; set; }
-
-        public string Class { get; protected set; }
-        public string AttackType { get; protected set; }
-        public string EnergyType { get; protected set; }
         public event Action<Character, Character> OnAttack;
         public event Action<Character, Character, double> OnDamageTaken;
         public event Action<Character> OnDeath;
         public event Action<Character> OnLevelUp;
+        public event Action<Character> OnEvade;
         protected Character(string name)
         {
             ID = LongIdGenerator.NextId();
             Name = name;
             Level = 1;
         }
-
         public abstract void ShowInfo();
         public abstract void Attack(Character target);
         public abstract void LevelUp();
@@ -49,16 +36,21 @@ namespace Game.Models
 
         public virtual void TakeDamage(Character attacker, double damage)
         {
-
-            CurrentHP = GameMath.Clamp(CurrentHP - damage, 0, HP);
-
-            OnDamageTaken?.Invoke(this, attacker, damage);
-
-            if (IsDead())
+            if (attacker is IDefend defender) defender.IsDefend = false;
+            if (Evade.NextDouble() < EvasionRate) OnEvade?.Invoke(this);
+            else
             {
-                CurrentHP = 0;
-                OnDeath?.Invoke(this);
+                CurrentHP = GameMath.Clamp(CurrentHP - damage, 0, HP);
+
+                OnDamageTaken?.Invoke(this, attacker, damage);
+
+                if (IsDead())
+                {
+                    CurrentHP = 0;
+                    OnDeath?.Invoke(this);
+                }
             }
+
         }
 
         public bool IsDead() => CurrentHP <= 0;
