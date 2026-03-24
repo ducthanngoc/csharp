@@ -1,0 +1,850 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Csv</name>
+    </assembly>
+    <members>
+        <member name="T:Csv.CsvBufferWriter">
+            <summary>
+            High-performance, memory-pool-based CSV writer that minimizes allocations.
+            </summary>
+        </member>
+        <member name="M:Csv.CsvBufferWriter.#ctor">
+            <summary>
+            Initializes a new instance of CsvBufferWriter with default options.
+            </summary>
+        </member>
+        <member name="M:Csv.CsvBufferWriter.#ctor(Csv.CsvMemoryOptions)">
+            <summary>
+            Initializes a new instance of CsvBufferWriter with specified options.
+            </summary>
+            <param name="options">The memory options to use.</param>
+        </member>
+        <member name="P:Csv.CsvBufferWriter.WrittenCount">
+            <summary>
+            Gets the total number of characters written.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvBufferWriter.Capacity">
+            <summary>
+            Gets the current capacity of the writer.
+            </summary>
+        </member>
+        <member name="M:Csv.CsvBufferWriter.WriteCsv(System.ReadOnlySpan{System.ReadOnlyMemory{System.Char}},System.Collections.Generic.IEnumerable{System.ReadOnlyMemory{System.Char}[]},System.Char,System.Boolean)">
+            <summary>
+            Writes CSV data using ReadOnlyMemory for headers and rows.
+            </summary>
+            <param name="headers">The CSV headers.</param>
+            <param name="rows">The CSV data rows.</param>
+            <param name="separator">The column separator character.</param>
+            <param name="skipHeaderRow">Whether to skip writing the header row.</param>
+        </member>
+        <member name="M:Csv.CsvBufferWriter.WriteRow(System.ReadOnlySpan{System.ReadOnlyMemory{System.Char}},System.Char)">
+            <summary>
+            Writes a single CSV row.
+            </summary>
+            <param name="cells">The row cells.</param>
+            <param name="separator">The column separator character.</param>
+        </member>
+        <member name="M:Csv.CsvBufferWriter.WriteCell(System.ReadOnlySpan{System.Char},System.Char)">
+            <summary>
+            Writes a single cell with proper CSV escaping.
+            </summary>
+            <param name="cell">The cell content.</param>
+            <param name="separator">The column separator character.</param>
+        </member>
+        <member name="M:Csv.CsvBufferWriter.Write(System.Char)">
+            <summary>
+            Writes a single character.
+            </summary>
+            <param name="value">The character to write.</param>
+        </member>
+        <member name="M:Csv.CsvBufferWriter.Write(System.String)">
+            <summary>
+            Writes a string.
+            </summary>
+            <param name="value">The string to write.</param>
+        </member>
+        <member name="M:Csv.CsvBufferWriter.Write(System.ReadOnlySpan{System.Char})">
+            <summary>
+            Writes a span of characters.
+            </summary>
+            <param name="value">The span to write.</param>
+        </member>
+        <member name="M:Csv.CsvBufferWriter.GetSpan(System.Int32)">
+            <summary>
+            Gets a span to write to with at least the specified size.
+            </summary>
+            <param name="sizeHint">The minimum size required.</param>
+            <returns>A writable span of characters.</returns>
+        </member>
+        <member name="M:Csv.CsvBufferWriter.GetMemory(System.Int32)">
+            <summary>
+            Gets memory to write to with at least the specified size.
+            </summary>
+            <param name="sizeHint">The minimum size required.</param>
+            <returns>Writable memory.</returns>
+        </member>
+        <member name="M:Csv.CsvBufferWriter.Advance(System.Int32)">
+            <summary>
+            Advances the position after writing the specified number of characters.
+            </summary>
+            <param name="count">The number of characters written.</param>
+        </member>
+        <member name="M:Csv.CsvBufferWriter.ToString">
+            <summary>
+            Converts the written content to a string.
+            </summary>
+            <returns>The CSV content as a string.</returns>
+        </member>
+        <member name="M:Csv.CsvBufferWriter.CopyTo(System.Span{System.Char})">
+            <summary>
+            Copies the written content to the specified span.
+            </summary>
+            <param name="destination">The destination span.</param>
+            <returns>The number of characters copied.</returns>
+        </member>
+        <member name="M:Csv.CsvBufferWriter.EnsureCapacity(System.Int32)">
+            <summary>
+            Ensures the writer has capacity for at least the specified number of additional characters.
+            </summary>
+            <param name="capacity">The minimum additional capacity required.</param>
+        </member>
+        <member name="M:Csv.CsvBufferWriter.Dispose">
+            <summary>
+            Disposes the writer and returns buffers to the pool.
+            </summary>
+        </member>
+        <member name="T:Csv.CsvLineSplitter">
+            <summary>
+            Splits a single line (multiline handling is done independently) into multiple parts
+            </summary>
+        </member>
+        <member name="T:Csv.CsvMemoryOptions">
+            <summary>
+            Configuration options for memory-efficient CSV operations using pooled buffers.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvMemoryOptions.MemoryPool">
+            <summary>
+            Gets or sets the memory pool to use for buffer allocation. If null, uses the default ArrayPool.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvMemoryOptions.InitialBufferSize">
+            <summary>
+            Gets or sets the initial buffer size for pooled operations. Default is 4096 characters.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvMemoryOptions.ReuseBuffers">
+            <summary>
+            Gets or sets whether to reuse buffers across operations. Default is true.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvMemoryOptions.MaxBufferSize">
+            <summary>
+            Gets or sets the maximum buffer size that can be allocated. Default is 1MB (524,288 characters).
+            </summary>
+        </member>
+        <member name="P:Csv.CsvMemoryOptions.UseVectorization">
+            <summary>
+            Gets or sets whether to use vectorized operations when available. Default is true.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvMemoryOptions.StreamingThreshold">
+            <summary>
+            Gets or sets the threshold for switching to streaming mode for large data. Default is 64KB.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvMemoryOptions.EnableZeroCopy">
+            <summary>
+            Gets or sets whether to enable zero-copy parsing when possible. Default is true.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvMemoryOptions.ClearBuffers">
+            <summary>
+            Gets or sets whether to clear rented buffers for security. Default is false for performance.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvMemoryOptions.DirectAllocationThreshold">
+            <summary>
+            Gets or sets the threshold below which direct allocation is used instead of buffer pooling.
+            This reduces memory overhead for small datasets. Default is 2048 characters.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvMemoryOptions.CharArrayPool">
+            <summary>
+            Gets the ArrayPool instance to use for char buffer allocation.
+            </summary>
+        </member>
+        <member name="M:Csv.CsvMemoryOptions.Clone">
+            <summary>
+            Creates a copy of the current options.
+            </summary>
+        </member>
+        <member name="M:Csv.CsvMemoryOptions.Validate">
+            <summary>
+            Validates the current configuration and throws if invalid.
+            </summary>
+        </member>
+        <member name="T:Csv.CsvOptions">
+            <summary>
+            Defines the options that can be passed to customize the reading or writing of csv files.
+            </summary>
+            <remarks>
+            Do not reuse an instance of <see cref="T:Csv.CsvOptions"/> for multiple reads or writes.
+            </remarks>
+        </member>
+        <member name="P:Csv.CsvOptions.RowsToSkip">
+            <summary>
+            Gets or sets the number of rows to skip before reading the header row, defaults to <c>0</c>.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvOptions.SkipRow">
+            <summary>
+            Gets or sets a function to skip the current row based on its raw string value or 1-based index. Skips empty rows and rows starting with # by default.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvOptions.Separator">
+            <summary>
+             Gets or sets the character to use for separating data, defaults to <c>'\0'</c> which will auto-detect from the header row.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvOptions.TrimData">
+            <summary>
+            Gets or sets whether data should be trimmed when accessed, defaults to <c>false</c>.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvOptions.Comparer">
+            <summary>
+            Gets or sets the comparer to use when looking up header names.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvOptions.HeaderMode">
+            <summary>
+             Gets or sets an indicator to the parser to expect a header row or not, defaults to <see cref="F:Csv.HeaderMode.HeaderPresent"/>.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvOptions.ValidateColumnCount">
+            <summary>
+            Gets or sets whether a row should be validated immediately that the column count matches the header count, defaults to <c>false</c>.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvOptions.ReturnEmptyForMissingColumn">
+            <summary>
+            Gets or sets whether an empty string is returned for a missing column, defaults to <c>false</c>.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvOptions.Aliases">
+            <summary>
+            Can be used to use multiple names for a single column. (e.g. to allow "CategoryName", "Category Name", "Category-Name")
+            </summary>
+            <remarks>
+            A group with no matches is ignored.
+            </remarks>
+        </member>
+        <member name="P:Csv.CsvOptions.AllowNewLineInEnclosedFieldValues">
+            <summary>
+            Respects new line (either \r\n or \n) characters inside field values enclosed in double quotes, defaults to <c>false</c>.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvOptions.AllowBackSlashToEscapeQuote">
+            <summary>
+            Allows the sequence <c>"\""</c> to be a valid quoted value (in addition to the standard <c>""""</c>), defaults to <c>false</c>.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvOptions.AllowSingleQuoteToEncloseFieldValues">
+            <summary>
+            Allows the single-quote character to be used to enclose field values, defaults to <c>false</c>.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvOptions.AllowEnclosedFieldValues">
+            <summary>
+            Allows field values to be enclosed in quotes. When set to <c>false</c> quotes
+            will be treated as normal characters, defaults to <c>true</c>.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvOptions.AutoRenameHeaders">
+            <summary>
+            Automatically renames duplicate headers by appending a number (e.g., "A", "A2", "A3").
+            Empty headers are renamed to "Empty", "Empty2", etc. Defaults to <c>true</c>.
+            When set to <c>false</c>, duplicate headers will throw an InvalidOperationException.
+            </summary>
+        </member>
+        <member name="P:Csv.CsvOptions.NewLine">
+            <summary>
+            The new line string to use when multiline field values are read, defaults to <see cref="P:System.Environment.NewLine"/>.
+            </summary>
+            <remarks>
+            Requires <see cref="P:Csv.CsvOptions.AllowNewLineInEnclosedFieldValues"/> to be set to <c>true</c> for this to have any effect.
+            </remarks>
+        </member>
+        <member name="T:Csv.CsvReader">
+            <summary>
+            Helper class to read csv (comma separated values) data.
+            </summary>
+        </member>
+        <member name="M:Csv.CsvReader.Read(System.IO.TextReader,Csv.CsvOptions)">
+            <summary>
+            Reads the lines from the reader.
+            </summary>
+            <param name="reader">The text reader to read the data from.</param>
+            <param name="options">The optional options to use when reading.</param>
+        </member>
+        <member name="M:Csv.CsvReader.ReadFromStream(System.IO.Stream,Csv.CsvOptions)">
+            <summary>
+            Reads the lines from the stream.
+            </summary>
+            <param name="stream">The stream to read the data from.</param>
+            <param name="options">The optional options to use when reading.</param>
+        </member>
+        <member name="M:Csv.CsvReader.ReadFromText(System.String,Csv.CsvOptions)">
+            <summary>
+            Reads the lines from the csv string.
+            </summary>
+            <param name="csv">The csv string to read the data from.</param>
+            <param name="options">The optional options to use when reading.</param>
+        </member>
+        <member name="M:Csv.CsvReader.ReadAsSpan(System.IO.TextReader,Csv.CsvOptions)">
+            <summary>
+            Reads the lines from the reader with enhanced Span/Memory support.
+            </summary>
+            <param name="reader">The text reader to read the data from.</param>
+            <param name="options">The optional options to use when reading.</param>
+        </member>
+        <member name="M:Csv.CsvReader.ReadFromStreamAsSpan(System.IO.Stream,Csv.CsvOptions)">
+            <summary>
+            Reads the lines from the stream with enhanced Span/Memory support.
+            </summary>
+            <param name="stream">The stream to read the data from.</param>
+            <param name="options">The optional options to use when reading.</param>
+        </member>
+        <member name="M:Csv.CsvReader.ReadFromTextAsSpan(System.String,Csv.CsvOptions)">
+            <summary>
+            Reads the lines from the csv string with enhanced Span/Memory support.
+            </summary>
+            <param name="csv">The csv string to read the data from.</param>
+            <param name="options">The optional options to use when reading.</param>
+        </member>
+        <member name="M:Csv.CsvReader.ReadFromMemoryOptimized(System.ReadOnlyMemory{System.Char},Csv.CsvOptions,Csv.CsvMemoryOptions)">
+            <summary>
+            Reads CSV data from memory with enhanced memory management options.
+            </summary>
+            <param name="csv">The CSV data as ReadOnlyMemory.</param>
+            <param name="options">The CSV parsing options.</param>
+            <param name="memoryOptions">The memory management options.</param>
+            <returns>An enumerable of CSV lines with memory optimization.</returns>
+        </member>
+        <member name="M:Csv.CsvReader.CreateBufferWriter(System.ReadOnlySpan{System.String},System.Char,Csv.CsvMemoryOptions)">
+            <summary>
+            Creates a buffer writer for optimized CSV writing.
+            </summary>
+            <param name="headers">The CSV headers.</param>
+            <param name="separator">The column separator.</param>
+            <param name="memoryOptions">The memory options.</param>
+            <returns>A buffer writer instance.</returns>
+        </member>
+        <member name="M:Csv.CsvReader.ReadAsync(System.IO.TextReader,Csv.CsvOptions)">
+            <summary>
+            Reads the lines from the reader.
+            </summary>
+            <param name="reader">The text reader to read the data from.</param>
+            <param name="options">The optional options to use when reading.</param>
+        </member>
+        <member name="M:Csv.CsvReader.ReadFromStreamAsync(System.IO.Stream,Csv.CsvOptions)">
+            <summary>
+            Reads the lines from the stream.
+            </summary>
+            <param name="stream">The stream to read the data from.</param>
+            <param name="options">The optional options to use when reading.</param>
+        </member>
+        <member name="M:Csv.CsvReader.ReadFromTextAsync(System.String,Csv.CsvOptions)">
+            <summary>
+            Reads the lines from the csv string.
+            </summary>
+            <param name="csv">The csv string to read the data from.</param>
+            <param name="options">The optional options to use when reading.</param>
+        </member>
+        <member name="M:Csv.CsvReader.GetColumn``1(System.Collections.Generic.IEnumerable{Csv.ICsvLine},System.Int32,System.Func{System.String,``0})">
+            <summary>
+            Gets a single column from the entire Enumeration of `ICsvLine`
+            </summary>
+            <param name="lines">The enumeration of `ICsvLine`</param>
+            <param name="columnNo">The index (starting from 0) of the the column
+            to extract</param>
+            <param name="transform">The transformation function to parse
+            from the string values</param>
+            <typeparam name="T">The datatype to transform
+            the string inputs into</typeparam>
+            <returns>An enumeration of the transformed
+            values of the selected column</returns>
+        </member>
+        <member name="M:Csv.CsvReader.GetColumn(System.Collections.Generic.IEnumerable{Csv.ICsvLine},System.Int32)">
+            <summary>
+            Gets a single column from the entire Enumeration of `ICsvLine`
+            </summary>
+            <param name="lines">The enumeration of `ICsvLine`</param>
+            <param name="columnNo">The index (starting from 0) of the the
+            column to extract</param>
+            <returns>An enumerations of the string values of
+            the selected column</returns>
+        </member>
+        <member name="M:Csv.CsvReader.GetBlock(System.Collections.Generic.IEnumerable{Csv.ICsvLine},System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Gets a range/block of values from the given enumeration of `ICsvLine`
+            </summary>
+            <param name="lines">The enumeration of `ICsvLine`</param>
+            <param name="row_start">The index(starting from 0) of the rows to start the capture of.
+            Default value is -1</param>
+            <param name="row_length">The number of rows to capture from the start row. If the default value
+             (or any negative number) is passed, selects all the rows till the end</param>
+            <param name="col_start">The index(starting from 0) of all the columns to start the capture of.</param>
+            <param name="col_length">The number of rows to capture from the start column.
+            If the default value (or any negative number) is passed, selects all the rows till the end</param>
+            <returns></returns>
+        </member>
+        <member name="M:Csv.CsvReader.ReadFromMemory(System.ReadOnlyMemory{System.Char},Csv.CsvOptions)">
+            <summary>
+            Reads the lines from the csv string.
+            </summary>
+            <param name="csv">The csv string to read the data from.</param>
+            <param name="options">The optional options to use when reading.</param>
+        </member>
+        <member name="T:Csv.CsvWriter">
+            <summary>
+            Helper class to write csv (comma separated values) data.
+            </summary>
+        </member>
+        <member name="M:Csv.CsvWriter.Write(System.IO.TextWriter,System.Collections.Generic.IEnumerable{System.String[]},System.Char)">
+            <summary>
+            Writes the lines to the writer without headers. Column count is determined from the first data line.
+            </summary>
+            <param name="writer">The text writer to write the data to.</param>
+            <param name="lines">The lines with data that should be written.</param>
+            <param name="separator">The separator to use between columns (comma, semicolon, tab, ...)</param>
+        </member>
+        <member name="M:Csv.CsvWriter.Write(System.IO.TextWriter,System.String[],System.Collections.Generic.IEnumerable{System.String[]},System.Char,System.Boolean)">
+            <summary>
+            Writes the lines to the writer.
+            </summary>
+            <param name="writer">The text writer to write the data to.</param>
+            <param name="headers">The headers that should be used for the first line, determines the number of columns. Can be null if skipHeaderRow is true.</param>
+            <param name="lines">The lines with data that should be written.</param>
+            <param name="separator">The separator to use between columns (comma, semicolon, tab, ...)</param>
+            <param name="skipHeaderRow">Indicate whether the header row should be skipped, defaults to <c>false</c>.</param>
+        </member>
+        <member name="M:Csv.CsvWriter.WriteToText(System.Collections.Generic.IEnumerable{System.String[]},System.Char)">
+            <summary>
+            Writes the lines without headers and returns the result. Column count is determined from the first data line.
+            </summary>
+            <param name="lines">The lines with data that should be written.</param>
+            <param name="separator">The separator to use between columns (comma, semicolon, tab, ...)</param>
+        </member>
+        <member name="M:Csv.CsvWriter.WriteToText(System.String[],System.Collections.Generic.IEnumerable{System.String[]},System.Char,System.Boolean)">
+            <summary>
+            Writes the lines and return the result.
+            </summary>
+            <param name="headers">The headers that should be used for the first line, determines the number of columns. Can be null if skipHeaderRow is true.</param>
+            <param name="lines">The lines with data that should be written.</param>
+            <param name="separator">The separator to use between columns (comma, semicolon, tab, ...)</param>
+            <param name="skipHeaderRow">Indicate whether the header row should be skipped, defaults to <c>false</c>.</param>
+        </member>
+        <member name="M:Csv.CsvWriter.Write(System.IO.TextWriter,System.Collections.Generic.IEnumerable{System.ReadOnlyMemory{System.Char}[]},System.Char)">
+            <summary>
+            Writes the lines to the writer without headers using memory-efficient ReadOnlyMemory&lt;char&gt; arrays. Column count is determined from the first data line.
+            </summary>
+            <param name="writer">The text writer to write the data to.</param>
+            <param name="lines">The lines with data that should be written.</param>
+            <param name="separator">The separator to use between columns (comma, semicolon, tab, ...)</param>
+        </member>
+        <member name="M:Csv.CsvWriter.Write(System.IO.TextWriter,System.ReadOnlyMemory{System.Char}[],System.Collections.Generic.IEnumerable{System.ReadOnlyMemory{System.Char}[]},System.Char,System.Boolean)">
+            <summary>
+            Writes the lines to the writer using memory-efficient ReadOnlyMemory&lt;char&gt; arrays.
+            </summary>
+            <param name="writer">The text writer to write the data to.</param>
+            <param name="headers">The headers that should be used for the first line, determines the number of columns. Can be null if skipHeaderRow is true.</param>
+            <param name="lines">The lines with data that should be written.</param>
+            <param name="separator">The separator to use between columns (comma, semicolon, tab, ...)</param>
+            <param name="skipHeaderRow">Indicate whether the header row should be skipped, defaults to <c>false</c>.</param>
+        </member>
+        <member name="M:Csv.CsvWriter.Write(System.IO.TextWriter,System.ReadOnlySpan{System.ReadOnlyMemory{System.Char}},System.Collections.Generic.IEnumerable{System.ReadOnlyMemory{System.Char}[]},System.Char,System.Boolean)">
+            <summary>
+            Writes the lines to the writer using memory-efficient ReadOnlySpan&lt;char&gt; headers.
+            </summary>
+            <param name="writer">The text writer to write the data to.</param>
+            <param name="headers">The headers that should be used for the first line, determines the number of columns. Can be empty if skipHeaderRow is true.</param>
+            <param name="lines">The lines with data that should be written.</param>
+            <param name="separator">The separator to use between columns (comma, semicolon, tab, ...)</param>
+            <param name="skipHeaderRow">Indicate whether the header row should be skipped, defaults to <c>false</c>.</param>
+        </member>
+        <member name="M:Csv.CsvWriter.WriteToText(System.Collections.Generic.IEnumerable{System.ReadOnlyMemory{System.Char}[]},System.Char)">
+            <summary>
+            Writes the lines without headers and returns the result using memory-efficient operations. Column count is determined from the first data line.
+            </summary>
+            <param name="lines">The lines with data that should be written.</param>
+            <param name="separator">The separator to use between columns (comma, semicolon, tab, ...)</param>
+        </member>
+        <member name="M:Csv.CsvWriter.WriteToText(System.ReadOnlyMemory{System.Char}[],System.Collections.Generic.IEnumerable{System.ReadOnlyMemory{System.Char}[]},System.Char,System.Boolean)">
+            <summary>
+            Writes the lines and return the result using memory-efficient operations.
+            </summary>
+            <param name="headers">The headers that should be used for the first line, determines the number of columns. Can be null if skipHeaderRow is true.</param>
+            <param name="lines">The lines with data that should be written.</param>
+            <param name="separator">The separator to use between columns (comma, semicolon, tab, ...)</param>
+            <param name="skipHeaderRow">Indicate whether the header row should be skipped, defaults to <c>false</c>.</param>
+        </member>
+        <member name="M:Csv.CsvWriter.WriteToBuffer(System.Span{System.Char},System.ReadOnlySpan{System.ReadOnlyMemory{System.Char}},System.ReadOnlySpan{System.ReadOnlyMemory{System.Char}[]},System.Char,System.Int32@,System.Boolean)">
+            <summary>
+            High-performance buffer-based writing with pre-allocated destination buffer.
+            </summary>
+            <param name="buffer">The destination buffer to write to.</param>
+            <param name="headers">The headers for the CSV.</param>
+            <param name="lines">The data lines to write.</param>
+            <param name="separator">The separator to use between columns.</param>
+            <param name="written">The number of characters written to the buffer.</param>
+            <param name="skipHeaderRow">Indicate whether the header row should be skipped, defaults to <c>false</c>.</param>
+            <returns>True if all data was written successfully, false if buffer was too small.</returns>
+        </member>
+        <member name="M:Csv.CsvWriter.WriteAsync(System.IO.TextWriter,System.Collections.Generic.IEnumerable{System.String[]},System.Char,System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously writes the lines to the writer without headers. Column count is determined from the first data line.
+            </summary>
+            <param name="writer">The text writer to write the data to.</param>
+            <param name="lines">The lines with data that should be written.</param>
+            <param name="separator">The separator to use between columns (comma, semicolon, tab, ...)</param>
+            <param name="cancellationToken">The cancellation token to use.</param>
+        </member>
+        <member name="M:Csv.CsvWriter.WriteAsync(System.IO.TextWriter,System.String[],System.Collections.Generic.IEnumerable{System.String[]},System.Char,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously writes the lines to the writer.
+            </summary>
+            <param name="writer">The text writer to write the data to.</param>
+            <param name="headers">The headers that should be used for the first line, determines the number of columns. Can be null if skipHeaderRow is true.</param>
+            <param name="lines">The lines with data that should be written.</param>
+            <param name="separator">The separator to use between columns (comma, semicolon, tab, ...)</param>
+            <param name="skipHeaderRow">Indicate whether the header row should be skipped, defaults to <c>false</c>.</param>
+            <param name="cancellationToken">The cancellation token to use.</param>
+        </member>
+        <member name="M:Csv.CsvWriter.WriteAsync(System.IO.TextWriter,System.Collections.Generic.IAsyncEnumerable{System.String[]},System.Char)">
+            <summary>
+            Asynchronously writes the lines to the writer without headers. Column count is determined from the first data line.
+            </summary>
+            <param name="writer">The text writer to write the data to.</param>
+            <param name="lines">The lines with data that should be written.</param>
+            <param name="separator">The separator to use between columns (comma, semicolon, tab, ...)</param>
+        </member>
+        <member name="M:Csv.CsvWriter.WriteAsync(System.IO.TextWriter,System.String[],System.Collections.Generic.IAsyncEnumerable{System.String[]},System.Char,System.Boolean)">
+            <summary>
+            Writes the lines to the writer.
+            </summary>
+            <param name="writer">The text writer to write the data to.</param>
+            <param name="headers">The headers that should be used for the first line, determines the number of columns. Can be null if skipHeaderRow is true.</param>
+            <param name="lines">The lines with data that should be written.</param>
+            <param name="separator">The separator to use between columns (comma, semicolon, tab, ...)</param>
+            <param name="skipHeaderRow">Indicate whether the header row should be skipped, defaults to <c>false</c>.</param>
+        </member>
+        <member name="M:Csv.CsvWriter.WriteAsync(System.IO.TextWriter,System.String[],System.Collections.Generic.IAsyncEnumerable{System.String[]},System.Char,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Writes the lines to the writer.
+            </summary>
+            <param name="writer">The text writer to write the data to.</param>
+            <param name="headers">The headers that should be used for the first line, determines the number of columns. Can be null if skipHeaderRow is true.</param>
+            <param name="lines">The lines with data that should be written.</param>
+            <param name="separator">The separator to use between columns (comma, semicolon, tab, ...)</param>
+            <param name="skipHeaderRow">Indicate whether the header row should be skipped, defaults to <c>false</c>.</param>
+            <param name="cancellationToken">The cancellation token to use.</param>
+        </member>
+        <member name="M:Csv.CsvWriter.WriteToTextAsync(System.Collections.Generic.IAsyncEnumerable{System.String[]},System.Char)">
+            <summary>
+            Asynchronously writes the lines without headers and returns the result. Column count is determined from the first data line.
+            </summary>
+            <param name="lines">The lines with data that should be written.</param>
+            <param name="separator">The separator to use between columns (comma, semicolon, tab, ...)</param>
+        </member>
+        <member name="M:Csv.CsvWriter.WriteToTextAsync(System.String[],System.Collections.Generic.IAsyncEnumerable{System.String[]},System.Char,System.Boolean)">
+            <summary>
+            Writes the lines and return the result.
+            </summary>
+            <param name="headers">The headers that should be used for the first line, determines the number of columns. Can be null if skipHeaderRow is true.</param>
+            <param name="lines">The lines with data that should be written.</param>
+            <param name="separator">The separator to use between columns (comma, semicolon, tab, ...)</param>
+            <param name="skipHeaderRow">Indicate whether the header row should be skipped, defaults to <c>false</c>.</param>
+        </member>
+        <member name="M:Csv.CsvWriter.WriteAsync(System.IO.TextWriter,System.Collections.Generic.IAsyncEnumerable{System.ReadOnlyMemory{System.Char}[]},System.Char)">
+            <summary>
+            Asynchronously writes the lines to the writer without headers using memory-efficient ReadOnlyMemory&lt;char&gt; arrays. Column count is determined from the first data line.
+            </summary>
+            <param name="writer">The text writer to write the data to.</param>
+            <param name="lines">The lines with data that should be written.</param>
+            <param name="separator">The separator to use between columns (comma, semicolon, tab, ...)</param>
+        </member>
+        <member name="M:Csv.CsvWriter.WriteAsync(System.IO.TextWriter,System.ReadOnlyMemory{System.Char}[],System.Collections.Generic.IAsyncEnumerable{System.ReadOnlyMemory{System.Char}[]},System.Char,System.Boolean)">
+            <summary>
+            Asynchronously writes the lines to the writer using memory-efficient ReadOnlyMemory&lt;char&gt; arrays.
+            </summary>
+            <param name="writer">The text writer to write the data to.</param>
+            <param name="headers">The headers that should be used for the first line, determines the number of columns. Can be null if skipHeaderRow is true.</param>
+            <param name="lines">The lines with data that should be written.</param>
+            <param name="separator">The separator to use between columns (comma, semicolon, tab, ...)</param>
+            <param name="skipHeaderRow">Indicate whether the header row should be skipped, defaults to <c>false</c>.</param>
+        </member>
+        <member name="M:Csv.CsvWriter.WriteAsync(System.IO.TextWriter,System.ReadOnlyMemory{System.Char}[],System.Collections.Generic.IAsyncEnumerable{System.ReadOnlyMemory{System.Char}[]},System.Char,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously writes the lines to the writer using memory-efficient ReadOnlyMemory&lt;char&gt; arrays.
+            </summary>
+            <param name="writer">The text writer to write the data to.</param>
+            <param name="headers">The headers that should be used for the first line, determines the number of columns. Can be null if skipHeaderRow is true.</param>
+            <param name="lines">The lines with data that should be written.</param>
+            <param name="separator">The separator to use between columns (comma, semicolon, tab, ...)</param>
+            <param name="skipHeaderRow">Indicate whether the header row should be skipped, defaults to <c>false</c>.</param>
+            <param name="cancellationToken">The cancellation token to use.</param>
+        </member>
+        <member name="M:Csv.CsvWriter.WriteToTextAsync(System.Collections.Generic.IAsyncEnumerable{System.ReadOnlyMemory{System.Char}[]},System.Char)">
+            <summary>
+            Asynchronously writes the lines without headers and returns the result using memory-efficient operations. Column count is determined from the first data line.
+            </summary>
+            <param name="lines">The lines with data that should be written.</param>
+            <param name="separator">The separator to use between columns (comma, semicolon, tab, ...)</param>
+        </member>
+        <member name="M:Csv.CsvWriter.WriteToTextAsync(System.ReadOnlyMemory{System.Char}[],System.Collections.Generic.IAsyncEnumerable{System.ReadOnlyMemory{System.Char}[]},System.Char,System.Boolean)">
+            <summary>
+            Asynchronously writes the lines and return the result using memory-efficient operations.
+            </summary>
+            <param name="headers">The headers that should be used for the first line, determines the number of columns. Can be null if skipHeaderRow is true.</param>
+            <param name="lines">The lines with data that should be written.</param>
+            <param name="separator">The separator to use between columns (comma, semicolon, tab, ...)</param>
+            <param name="skipHeaderRow">Indicate whether the header row should be skipped, defaults to <c>false</c>.</param>
+        </member>
+        <member name="T:Csv.HeaderMode">
+            <summary>
+            Indicates the presence (default) or absence of a header row.
+            </summary>
+        </member>
+        <member name="F:Csv.HeaderMode.HeaderPresent">
+            <summary>
+            Indicates that the CSV file has a header row. (Default)
+            </summary>
+        </member>
+        <member name="F:Csv.HeaderMode.HeaderAbsent">
+            <summary>
+            Indicates that the CSV file does not have a header row.
+            </summary>
+        </member>
+        <member name="T:Csv.ICsvLine">
+            <summary>
+            Represents a single data line inside a csv file.
+            </summary>
+        </member>
+        <member name="P:Csv.ICsvLine.Headers">
+            <summary>
+            Gets the headers from the csv file.
+            </summary>
+        </member>
+        <member name="P:Csv.ICsvLine.Values">
+            <summary>
+            Gets a list of values in string format for the current row.
+            </summary>
+        </member>
+        <member name="P:Csv.ICsvLine.Raw">
+            <summary>
+            Gets the original raw content of the line.
+            </summary>
+        </member>
+        <member name="P:Csv.ICsvLine.Index">
+            <summary>
+            Gets the 1-based index for the line inside the file.
+            </summary>
+        </member>
+        <member name="P:Csv.ICsvLine.ColumnCount">
+            <summary>
+            Gets the number of columns of the line.
+            </summary>
+        </member>
+        <member name="M:Csv.ICsvLine.HasColumn(System.String)">
+            <summary>
+            Indicates whether the specified <paramref name="name"/> exists.
+            </summary>
+        </member>
+        <member name="M:Csv.ICsvLine.LineHasColumn(System.String)">
+            <summary>
+            Indicates whether the specified <paramref name="name"/> exists and
+            the current line contains a value for it.
+            </summary>
+        </member>
+        <member name="P:Csv.ICsvLine.Item(System.String)">
+            <summary>
+            Gets the data for the specified named header.
+            </summary>
+            <param name="name">The name of the header.</param>
+        </member>
+        <member name="P:Csv.ICsvLine.Item(System.Int32)">
+            <summary>
+            Gets the data for the specified indexed header.
+            </summary>
+            <param name="index">The index of the header.</param>
+        </member>
+        <member name="T:Csv.ICsvLineFromMemory">
+            <summary>
+            Represents a single data line inside a csv file.
+            </summary>
+        </member>
+        <member name="P:Csv.ICsvLineFromMemory.Headers">
+            <summary>
+            Gets the headers from the csv file.
+            </summary>
+        </member>
+        <member name="P:Csv.ICsvLineFromMemory.Values">
+            <summary>
+            Gets a list of values in string format for the current row.
+            </summary>
+        </member>
+        <member name="P:Csv.ICsvLineFromMemory.Raw">
+            <summary>
+            Gets the original raw content of the line.
+            </summary>
+        </member>
+        <member name="P:Csv.ICsvLineFromMemory.Index">
+            <summary>
+            Gets the 1-based index for the line inside the file.
+            </summary>
+        </member>
+        <member name="P:Csv.ICsvLineFromMemory.ColumnCount">
+            <summary>
+            Gets the number of columns of the line.
+            </summary>
+        </member>
+        <member name="M:Csv.ICsvLineFromMemory.HasColumn(System.String)">
+            <summary>
+            Indicates whether the specified <paramref name="name"/> exists.
+            </summary>
+        </member>
+        <member name="M:Csv.ICsvLineFromMemory.LineHasColumn(System.String)">
+            <summary>
+            Indicates whether the specified <paramref name="name"/> exists and
+            the current line contains a value for it.
+            </summary>
+        </member>
+        <member name="P:Csv.ICsvLineFromMemory.Item(System.String)">
+            <summary>
+            Gets the data for the specified named header.
+            </summary>
+            <param name="name">The name of the header.</param>
+        </member>
+        <member name="P:Csv.ICsvLineFromMemory.Item(System.Int32)">
+            <summary>
+            Gets the data for the specified indexed header.
+            </summary>
+            <param name="index">The index of the header.</param>
+        </member>
+        <member name="T:Csv.ICsvLineSpan">
+            <summary>
+            Enhanced CSV line interface with Span/Memory support for zero-allocation data access.
+            </summary>
+        </member>
+        <member name="P:Csv.ICsvLineSpan.HeadersMemory">
+            <summary>
+            Gets the headers as ReadOnlyMemory&lt;char&gt; for efficient memory access.
+            </summary>
+        </member>
+        <member name="P:Csv.ICsvLineSpan.ValuesMemory">
+            <summary>
+            Gets a list of values as ReadOnlyMemory&lt;char&gt; for the current row.
+            </summary>
+        </member>
+        <member name="P:Csv.ICsvLineSpan.RawMemory">
+            <summary>
+            Gets the original raw content of the line as ReadOnlyMemory&lt;char&gt;.
+            </summary>
+        </member>
+        <member name="P:Csv.ICsvLineSpan.HeadersSpan">
+            <summary>
+            Gets the headers as ReadOnlySpan&lt;char&gt; for zero-allocation access.
+            </summary>
+        </member>
+        <member name="P:Csv.ICsvLineSpan.ValuesSpan">
+            <summary>
+            Gets the values as ReadOnlySpan&lt;char&gt; for zero-allocation access.
+            </summary>
+        </member>
+        <member name="P:Csv.ICsvLineSpan.RawSpan">
+            <summary>
+            Gets the raw content as ReadOnlySpan&lt;char&gt; for zero-allocation access.
+            </summary>
+        </member>
+        <member name="M:Csv.ICsvLineSpan.GetMemory(System.String)">
+            <summary>
+            Gets the data for the specified named header as ReadOnlyMemory&lt;char&gt;.
+            </summary>
+            <param name="name">The name of the header.</param>
+        </member>
+        <member name="M:Csv.ICsvLineSpan.GetMemory(System.Int32)">
+            <summary>
+            Gets the data for the specified column index as ReadOnlyMemory&lt;char&gt;.
+            </summary>
+            <param name="index">The zero-based index of the column.</param>
+        </member>
+        <member name="M:Csv.ICsvLineSpan.GetSpan(System.String)">
+            <summary>
+            Gets the data for the specified named header as ReadOnlySpan&lt;char&gt;.
+            </summary>
+            <param name="name">The name of the header.</param>
+        </member>
+        <member name="M:Csv.ICsvLineSpan.GetSpan(System.Int32)">
+            <summary>
+            Gets the data for the specified column index as ReadOnlySpan&lt;char&gt;.
+            </summary>
+            <param name="index">The zero-based index of the column.</param>
+        </member>
+        <member name="M:Csv.ICsvLineSpan.TryGetMemory(System.String,System.ReadOnlyMemory{System.Char}@)">
+            <summary>
+            Tries to get the data for the specified named header as ReadOnlyMemory&lt;char&gt;.
+            </summary>
+            <param name="name">The name of the header.</param>
+            <param name="value">When this method returns, contains the memory for the column if found; otherwise, empty.</param>
+            <returns>true if the column was found; otherwise, false.</returns>
+        </member>
+        <member name="M:Csv.ICsvLineSpan.TryGetMemory(System.Int32,System.ReadOnlyMemory{System.Char}@)">
+            <summary>
+            Tries to get the data for the specified column index as ReadOnlyMemory&lt;char&gt;.
+            </summary>
+            <param name="index">The zero-based index of the column.</param>
+            <param name="value">When this method returns, contains the memory for the column if found; otherwise, empty.</param>
+            <returns>true if the column was found; otherwise, false.</returns>
+        </member>
+        <member name="M:Csv.ICsvLineSpan.TryGetSpan(System.String,System.ReadOnlySpan{System.Char}@)">
+            <summary>
+            Tries to get the data for the specified named header as ReadOnlySpan&lt;char&gt;.
+            </summary>
+            <param name="name">The name of the header.</param>
+            <param name="value">When this method returns, contains the span for the column if found; otherwise, empty.</param>
+            <returns>true if the column was found; otherwise, false.</returns>
+        </member>
+        <member name="M:Csv.ICsvLineSpan.TryGetSpan(System.Int32,System.ReadOnlySpan{System.Char}@)">
+            <summary>
+            Tries to get the data for the specified column index as ReadOnlySpan&lt;char&gt;.
+            </summary>
+            <param name="index">The zero-based index of the column.</param>
+            <param name="value">When this method returns, contains the span for the column if found; otherwise, empty.</param>
+            <returns>true if the column was found; otherwise, false.</returns>
+        </member>
+        <member name="T:Csv.StringHelpers">
+            <summary>
+            Extension methods for <see cref="T:System.ReadOnlyMemory`1"/> to handle common string operations.
+            </summary>
+        </member>
+        <member name="M:Csv.StringHelpers.StartsWith(System.ReadOnlyMemory{System.Char},System.String)">
+            <summary>
+            Checks whether <paramref name="str" /> starts with <paramref name="value"/>.
+            </summary>
+        </member>
+        <member name="M:Csv.StringHelpers.EndsWith(System.ReadOnlyMemory{System.Char},System.String)">
+            <summary>
+            Checks whether <paramref name="str" /> ends with <paramref name="value"/>.
+            </summary>
+        </member>
+        <member name="M:Csv.StringHelpers.AsString(System.ReadOnlyMemory{System.Char})">
+            <summary>
+            Gets a <see cref="T:System.String"/> value for <paramref name="str"/>.
+            </summary>
+        </member>
+    </members>
+</doc>
