@@ -132,7 +132,6 @@ namespace Game.Ultis
                 var compareKey = uri.GetLeftPart(UriPartial.Path).ToLower();
 
                 if (!unique.Add(compareKey)) return;
-
                 var type = DetectType(rawUrl);
                 if (type == UrlType.EmbedVideo)
                 {
@@ -156,6 +155,20 @@ namespace Game.Ultis
         }
         public async Task<UrlInfo> ResolveEmbedAsync(string embedUrl)
         {
+            if (embedUrl.Contains("youtube.com/embed"))
+            {
+                var match = Regex.Match(embedUrl, @"youtube\.com\/embed\/([a-zA-Z0-9_-]+)");
+                if (match.Success)
+                {
+                    var videoId = match.Groups[1].Value;
+
+                    return new UrlInfo
+                    {
+                        Url = $"https://www.youtube.com/watch?v={videoId}",
+                        Type = UrlType.Video
+                    };
+                }
+            }
             try
             {
                 string html = await _http.GetStringAsync(embedUrl);
@@ -169,14 +182,6 @@ namespace Game.Ultis
                 var m3u8Match = Regex.Match(html,
                     @"video_url_1080\s*=\s*['""](?<url>[^'""]+)['""]",
                     RegexOptions.IgnoreCase);
-                var hls = Regex.Match(html, @"https?:\/\/[^""']+\.m3u8");
-                var mp4 = Regex.Match(html, @"https?:\/\/[^""']+\.mp4");
-
-                if (hls.Success)
-                    return new UrlInfo { Url = hls.Value, Type = UrlType.Video };
-
-                if (mp4.Success)
-                    return new UrlInfo { Url = mp4.Value, Type = UrlType.Video };
                 if (m3u8Match.Success && !string.IsNullOrEmpty(m3u8Match.Groups["url"].Value))
                 {
                     var path = m3u8Match.Groups["url"].Value;
@@ -191,6 +196,14 @@ namespace Game.Ultis
                         Type = UrlType.Video
                     };
                 }
+                var hls = Regex.Match(html, @"https?:\/\/[^""']+\.m3u8");
+                var mp4 = Regex.Match(html, @"https?:\/\/[^""']+\.mp4");
+
+                if (hls.Success)
+                    return new UrlInfo { Url = hls.Value, Type = UrlType.Video };
+
+                if (mp4.Success)
+                    return new UrlInfo { Url = mp4.Value, Type = UrlType.Video };
 
                 var mp4Match = Regex.Match(html,
                     @"video_url_720\s*=\s*['""](?<url>[^'""]+)['""]",
