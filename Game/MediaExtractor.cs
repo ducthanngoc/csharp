@@ -80,14 +80,15 @@ namespace Game.Ultis
             doc.LoadHtml(html);
             if (doc.DocumentNode == null) return result;
 
-            ExtractFromScripts(doc, new_url, unique, result);
+            await ExtractFromScripts(doc, new_url, unique, result, 0);
 
-            TraverseIterative(doc.DocumentNode, new_url, unique, result);
+            await TraverseIterative(doc.DocumentNode, new_url, unique, result, 0);
 
             return result;
         }
-        private void Process(string rawUrl, string baseUrl, HashSet<string> unique, List<UrlInfo> result)
+        private async Task Process(string rawUrl, string baseUrl, HashSet<string> unique, List<UrlInfo> result, int depth = 0)
         {
+            if (depth > 2) return;
             if (string.IsNullOrWhiteSpace(rawUrl)) return;
 
             rawUrl = rawUrl.Replace("\\/", "/");
@@ -133,7 +134,16 @@ namespace Game.Ultis
                 if (!unique.Add(compareKey)) return;
 
                 var type = DetectType(rawUrl);
+                if (type == UrlType.EmbedVideo)
+                {
+                    var real = await ResolveEmbedAsync(rawUrl);
 
+                    if (real.Type == UrlType.Video)
+                    {
+                        result.Add(real);
+                        return;
+                    }
+                }
                 result.Add(new UrlInfo
                 {
                     Url = rawUrl,
@@ -144,11 +154,90 @@ namespace Game.Ultis
             {
             }
         }
+        public async Task<UrlInfo> ResolveEmbedAsync(string embedUrl)
+        {
+            try
+            {
+                string html = await _http.GetStringAsync(embedUrl);
+
+                var baseMatch = Regex.Match(html,
+                    @"video_cdn_url_base\s*=\s*['""](?<base>[^'""]+)['""]",
+                    RegexOptions.IgnoreCase);
+
+                var baseUrl = baseMatch.Success ? baseMatch.Groups["base"].Value : "";
+
+                var m3u8Match = Regex.Match(html,
+                    @"video_url_1080\s*=\s*['""](?<url>[^'""]+)['""]",
+                    RegexOptions.IgnoreCase);
+                var hls = Regex.Match(html, @"https?:\/\/[^""']+\.m3u8");
+                var mp4 = Regex.Match(html, @"https?:\/\/[^""']+\.mp4");
+
+                if (hls.Success)
+                    return new UrlInfo { Url = hls.Value, Type = UrlType.Video };
+
+                if (mp4.Success)
+                    return new UrlInfo { Url = mp4.Value, Type = UrlType.Video };
+                if (m3u8Match.Success && !string.IsNullOrEmpty(m3u8Match.Groups["url"].Value))
+                {
+                    var path = m3u8Match.Groups["url"].Value;
+
+                    var full = path.StartsWith("http")
+                        ? path
+                        : baseUrl + path;
+
+                    return new UrlInfo
+                    {
+                        Url = full,
+                        Type = UrlType.Video
+                    };
+                }
+
+                var mp4Match = Regex.Match(html,
+                    @"video_url_720\s*=\s*['""](?<url>[^'""]+)['""]",
+                    RegexOptions.IgnoreCase);
+
+                if (mp4Match.Success && !string.IsNullOrEmpty(mp4Match.Groups["url"].Value))
+                {
+                    var path = mp4Match.Groups["url"].Value;
+
+                    var full = path.StartsWith("http")
+                        ? path
+                        : baseUrl + path;
+
+                    return new UrlInfo
+                    {
+                        Url = full,
+                        Type = UrlType.Video
+                    };
+                }
+
+                var fallback = Regex.Match(html, @"https?:\/\/[^""']+\.(mp4|m3u8)",
+                    RegexOptions.IgnoreCase);
+
+                if (fallback.Success)
+                {
+                    return new UrlInfo
+                    {
+                        Url = fallback.Value,
+                        Type = UrlType.Video
+                    };
+                }
+            }
+            catch
+            {
+            }
+
+            return new UrlInfo
+            {
+                Url = embedUrl,
+                Type = UrlType.Other
+            };
+        }
         private static readonly HashSet<string> ImportantAttrs = new HashSet<string>
         {
             "src", "href", "data-src", "data-vid", "poster", "xmlns", "data-href", "onclick", "lang", "data-original", "alt", "content", "style", "data-urlimg", "itemtype", "data-srcset", "data-url", "data-cache-file-woff2", "data-cache-file-woff", "data-cache-file-ttf", "srcset"
         };
-        private void TraverseIterative(HtmlNode root, string baseUrl, HashSet<string> unique, List<UrlInfo> result)
+        private async Task TraverseIterative(HtmlNode root, string baseUrl, HashSet<string> unique, List<UrlInfo> result, int depth = 0)
         {
             var stack = new Stack<HtmlNode>();
             stack.Push(root);
@@ -161,12 +250,12 @@ namespace Game.Ultis
                     var src = node.GetAttributeValue("src", "");
                     if (!string.IsNullOrEmpty(src))
                     {
-                        Process(src, baseUrl, unique, result);
+                        await Process(src, baseUrl, unique, result, depth + 1);
                     }
                 }
                 if (node.HasAttributes)
                 {
-                    ScanAttributes(node, baseUrl, unique, result);
+                    await ScanAttributes(node, baseUrl, unique, result, depth);
                 }
 
                 foreach (var child in node.ChildNodes)
@@ -175,7 +264,7 @@ namespace Game.Ultis
                 }
             }
         }
-        private void ScanAttributes(HtmlNode node, string baseUrl, HashSet<string> unique, List<UrlInfo> result)
+        private async Task ScanAttributes(HtmlNode node, string baseUrl, HashSet<string> unique, List<UrlInfo> result, int depth)
         {
             foreach (var attr in node.Attributes)
             {
@@ -188,19 +277,19 @@ namespace Game.Ultis
 
                 if (value.StartsWith("http") || value.StartsWith("//"))
                 {
-                    Process(value, baseUrl, unique, result);
+                    await Process(value, baseUrl, unique, result, depth);
                     continue;
                 }
                 if (value.Contains("/") || value.Contains("."))
                 {
                     foreach (Match match in _urlRegex.Matches(value))
                     {
-                        Process(match.Value, baseUrl, unique, result);
+                        await Process(match.Value, baseUrl, unique, result, depth);
                     }
                 }
             }
         }
-        private void ExtractFromScripts(HtmlDocument doc, string baseUrl, HashSet<string> unique, List<UrlInfo> result)
+        private async Task ExtractFromScripts(HtmlDocument doc, string baseUrl, HashSet<string> unique, List<UrlInfo> result, int depth)
         {
             var scripts = doc.DocumentNode.SelectNodes("//script");
 
@@ -214,7 +303,7 @@ namespace Game.Ultis
 
                 foreach (Match match in _urlRegex.Matches(text))
                 {
-                    Process(match.Value, baseUrl, unique, result);
+                    await Process(match.Value, baseUrl, unique, result, depth);
                 }
             }
         }
