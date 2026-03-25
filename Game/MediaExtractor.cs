@@ -13,6 +13,7 @@ namespace Game.Ultis
     {
         Image,
         Video,
+        EmbedVideo,
         Other
     }
 
@@ -48,19 +49,40 @@ namespace Game.Ultis
         {
             ".mp4", ".webm", ".ogg", ".mov", ".mkv", ".m3u8"
         };
+        static MediaExtractor()
+        {
+            _http.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36");
+            _http.DefaultRequestHeaders.Referrer = new Uri("https://google.com");
+            _http.DefaultRequestHeaders.TryAddWithoutValidation("Accept",
+                "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+
+            _http.DefaultRequestHeaders.TryAddWithoutValidation("Accept-Language",
+                "en-US,en;q=0.9");
+        }
         public async Task<List<UrlInfo>> ExtractAsync(string url)
         {
             var result = new List<UrlInfo>();
             var unique = new HashSet<string>();
-            string html = await _http.GetStringAsync(url);
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            {
+                if (Uri.TryCreate("https://" + url, UriKind.Absolute, out uri))
+                {
+                }
+                else
+                {
+                    throw new Exception("Invalid URL: " + url);
+                }
+            }
+            string new_url = uri.ToString();
+            string html = await _http.GetStringAsync(new_url);
             var doc = new HtmlDocument();
             doc.LoadHtml(html);
-
             if (doc.DocumentNode == null) return result;
 
-            ExtractFromScripts(doc, url, unique, result);
+            ExtractFromScripts(doc, new_url, unique, result);
 
-            TraverseIterative(doc.DocumentNode, url, unique, result);
+            TraverseIterative(doc.DocumentNode, new_url, unique, result);
 
             return result;
         }
@@ -110,10 +132,12 @@ namespace Game.Ultis
 
                 if (!unique.Add(compareKey)) return;
 
+                var type = DetectType(rawUrl);
+
                 result.Add(new UrlInfo
                 {
                     Url = rawUrl,
-                    Type = DetectType(rawUrl)
+                    Type = type
                 });
             }
             catch
@@ -132,6 +156,14 @@ namespace Game.Ultis
             while (stack.Count > 0)
             {
                 var node = stack.Pop();
+                if (node.Name == "iframe")
+                {
+                    var src = node.GetAttributeValue("src", "");
+                    if (!string.IsNullOrEmpty(src))
+                    {
+                        Process(src, baseUrl, unique, result);
+                    }
+                }
                 if (node.HasAttributes)
                 {
                     ScanAttributes(node, baseUrl, unique, result);
@@ -201,6 +233,10 @@ namespace Game.Ultis
             try
             {
                 var uri = new Uri(url);
+                var path = uri.AbsolutePath.ToLower();
+
+                if (path.Contains("/embed/") || path.Contains("/player/"))
+                    return UrlType.EmbedVideo;
 
                 var queryDict = ParseQuery(uri.Query);
 
@@ -211,8 +247,6 @@ namespace Game.Ultis
                     if (_videoExt.Any(ext => decoded.Contains(ext)))
                         return UrlType.Video;
                 }
-
-                var path = uri.AbsolutePath.ToLower();
 
                 if (_videoExt.Any(ext => path.EndsWith(ext)))
                     return UrlType.Video;
