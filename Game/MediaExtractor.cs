@@ -319,16 +319,6 @@ namespace Game.Ultis
                 }
             }
         }
-        private Dictionary<string, string> ParseQuery(string query)
-        {
-            return query.TrimStart('?')
-                .Split(new[] { '&' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(part => part.Split(new[] { '=' }, 2))
-                .ToDictionary(
-                    x => x[0],
-                    x => x.Length > 1 ? Uri.UnescapeDataString(x[1]) : ""
-                );
-        }
         private UrlType DetectType(string url)
         {
             if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
