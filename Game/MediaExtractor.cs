@@ -59,6 +59,7 @@ namespace Game.Ultis
 
             _http.DefaultRequestHeaders.TryAddWithoutValidation("Accept-Language",
                 "en-US,en;q=0.9");
+            _http.DefaultRequestHeaders.ConnectionClose = true;
         }
         public async Task<List<UrlInfo>> ExtractAsync(string url)
         {
