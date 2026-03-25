@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Policy;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -13,7 +15,7 @@ namespace Game.Ultis
     {
         Image,
         Video,
-        EmbedVideo,
+        Embed,
         Other
     }
 
@@ -40,12 +42,12 @@ namespace Game.Ultis
         private static readonly Regex _urlRegex =
             new Regex(@"((https?:)?\/\/[^\s""']+|([\w-]+\.)+[\w-]+\/[^\s""']+)",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private readonly HashSet<string> _imageExt = new HashSet<string>
+        private readonly HashSet<string> _imageExt = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".svg"
         };
 
-        private readonly HashSet<string> _videoExt = new HashSet<string>
+        private readonly HashSet<string> _videoExt = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             ".mp4", ".webm", ".ogg", ".mov", ".mkv", ".m3u8"
         };
@@ -118,23 +120,19 @@ namespace Game.Ultis
                     rawUrl = "https://" + rawUrl;
                 }
 
-                Uri baseUri;
-                if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out baseUri))
+                if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out var baseUri))
                     return;
 
-                Uri uri;
-                if (!Uri.TryCreate(rawUrl, UriKind.Absolute, out uri))
-                {
-                    if (!Uri.TryCreate(baseUri, rawUrl, out uri))
-                        return;
-                }
+                if (!Uri.TryCreate(rawUrl, UriKind.Absolute, out var uri) &&
+                    !Uri.TryCreate(baseUri, rawUrl, out uri))
+                    return;
 
                 rawUrl = uri.GetLeftPart(UriPartial.Path) + uri.Query;
                 var compareKey = uri.GetLeftPart(UriPartial.Path).ToLower();
 
                 if (!unique.Add(compareKey)) return;
                 var type = DetectType(rawUrl);
-                if (type == UrlType.EmbedVideo)
+                if (type == UrlType.Embed)
                 {
                     var real = await ResolveEmbedAsync(rawUrl);
 
@@ -333,31 +331,18 @@ namespace Game.Ultis
         }
         private UrlType DetectType(string url)
         {
-            try
-            {
-                var uri = new Uri(url);
-                var path = uri.AbsolutePath.ToLower();
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+                return UrlType.Other;
 
-                if (path.Contains("/embed/") || path.Contains("/player/"))
-                    return UrlType.EmbedVideo;
+            var path = uri.AbsolutePath.ToLowerInvariant();
+            var ext = Path.GetExtension(path);
 
-                var queryDict = ParseQuery(uri.Query);
-
-                if (queryDict.TryGetValue("fileId", out var fileId))
-                {
-                    var decoded = fileId.ToLower();
-
-                    if (_videoExt.Any(ext => decoded.Contains(ext)))
-                        return UrlType.Video;
-                }
-
-                if (_videoExt.Any(ext => path.EndsWith(ext)))
-                    return UrlType.Video;
-
-                if (_imageExt.Any(ext => path.EndsWith(ext)))
-                    return UrlType.Image;
-            }
-            catch { }
+            if (_videoExt.Contains(ext))
+                return UrlType.Video;
+            if (_imageExt.Contains(ext))
+                return UrlType.Image;
+            if (path.Contains("/embed/") || path.Contains("/playback/") || path.Contains("/iframe/"))
+                return UrlType.Embed;
 
             return UrlType.Other;
         }
