@@ -9,9 +9,10 @@ namespace Shader
             InitializeComponent();
             IChannelType[] iChannelType =
             {
-                IChannelType.BufferA
+                IChannelType.BufferA,
+                IChannelType.Sampler2D
             };
-        var gl = new ShadertoyGLControl(iChannelType)
+        var gl = new ShaderGLControl(iChannelType)
             {
                 Dock = DockStyle.Fill
             };
