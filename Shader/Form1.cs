@@ -18,7 +18,7 @@ namespace Shader
             };
 
             this.Controls.Add(gl);
-            gl.LoadShader("shaders/image.glsl");
+            gl.LoadShader("shaders/image.frag");
         }
     }
 }
